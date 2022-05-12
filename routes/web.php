@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\FilesController;
+use App\Http\Controllers\TransfersController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,4 +34,15 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    Route::get('/files', [FilesController::class, 'show'])->name('admin.files.index');
+
+    Route::prefix('transfers')
+        ->as('transfers.')
+        ->group(function () {
+            Route::get('/store', [TransfersController::class, 'store'])->name('store');
+            Route::get('/{transfer}', [TransfersController::class, 'edit'])->name('edit');
+            Route::post('/{transfer}/upload', [FilesController::class, 'store'])->name('upload');
+            Route::delete('/{transfer}/upload', [FilesController::class, 'destroy'])->name('destroy');
+        });
 });
