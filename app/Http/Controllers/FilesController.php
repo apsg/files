@@ -26,9 +26,9 @@ class FilesController extends Controller
         ]);
     }
 
-    public function destroy(Transfer $transfer, Request $request)
+    public function destroy(File $file)
     {
-        $transfer->files()->where('id', $request->input('id'))->delete();
+        $file->delete();
 
         return response()->json('ok');
     }

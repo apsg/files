@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('hash');
             $table->string('code');
 
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
 
             $table->timestamps();
         });

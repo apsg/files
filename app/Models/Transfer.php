@@ -16,6 +16,8 @@ use Illuminate\Support\Collection;
  * @property Carbon                 created_at
  * @property Carbon                 updated_at
  *
+ * @property-read string            url
+ *
  * @property-read Collection|File[] files
  */
 class Transfer extends Model
@@ -24,8 +26,30 @@ class Transfer extends Model
 
     protected $guarded = [];
 
+    protected $hidden = [
+        'code',
+    ];
+
+    protected $appends = [
+        'url',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
+
     public function files() : HasMany
     {
         return $this->hasMany(File::class);
+    }
+
+    public function getUrlAttribute() : string
+    {
+        return url('/t/' . $this->hash);
+    }
+
+    public function getHoursAttribute() : int
+    {
+        return $this->expires_at->diffInHours();
     }
 }

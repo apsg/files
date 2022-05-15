@@ -1,5 +1,5 @@
 const mix = require('laravel-mix');
-
+const webpackConfig = require('./webpack.config');
 /*
  |--------------------------------------------------------------------------
  | Mix Asset Management
@@ -16,9 +16,7 @@ mix.js('resources/js/app.js', 'public/js').vue()
         require('postcss-import'),
         require('tailwindcss'),
     ])
-    .alias({
-        '@': 'resources/js',
-    });
+    .webpackConfig(webpackConfig);
 
 if (mix.inProduction()) {
     mix.version();

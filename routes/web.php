@@ -42,7 +42,14 @@ Route::middleware([
         ->group(function () {
             Route::get('/store', [TransfersController::class, 'store'])->name('store');
             Route::get('/{transfer}', [TransfersController::class, 'edit'])->name('edit');
+            Route::get('/{transfer}/files', [TransfersController::class, 'getFiles'])->name('files');
+            Route::patch('/{transfer}', [TransfersController::class, 'update'])->name('update');
             Route::post('/{transfer}/upload', [FilesController::class, 'store'])->name('upload');
-            Route::delete('/{transfer}/upload', [FilesController::class, 'destroy'])->name('destroy');
+        });
+
+    Route::prefix('files')
+        ->as('files.')
+        ->group(function () {
+            Route::delete('/{file}', [FilesController::class, 'destroy'])->name('destroy');
         });
 });
