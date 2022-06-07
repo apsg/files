@@ -27,4 +27,9 @@ class File extends Model
     {
         return $this->belongsTo(Transfer::class);
     }
+
+    public function url() : string
+    {
+        return route('transfers.download', [$this->transfer, $this]);
+    }
 }

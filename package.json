@@ -21,9 +21,12 @@
         "lodash": "^4.17.19",
         "postcss": "^8.1.14",
         "postcss-import": "^14.0.2",
+        "sass": "^1.52.2",
+        "sass-loader": "^13.0.0",
         "tailwindcss": "^3.0.0",
         "vue": "^3.2.31",
-        "vue-loader": "^17.0.0"
+        "vue-loader": "^17.0.0",
+        "webpack": "^5.73.0"
     },
     "dependencies": {
         "filepond": "^4.30.3",

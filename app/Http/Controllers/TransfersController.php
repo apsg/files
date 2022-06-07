@@ -1,48 +1,43 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PatchTransferRequest;
+use App\Http\Requests\DownloadFileRequest;
+use App\Http\Requests\VerifyCodeRequest;
+use App\Http\Transformers\TransferTransformer;
+use App\Models\File;
 use App\Models\Transfer;
-use App\Repositories\TransfersRepository;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Spatie\Fractalistic\ArraySerializer;
 
 class TransfersController extends Controller
 {
-    public function store(TransfersRepository $repository)
+    public function show(Transfer $transfer)
     {
-        $transfer = $repository->create();
-
-        return redirect(route('transfers.edit', $transfer));
-    }
-
-    public function edit(Transfer $transfer)
-    {
-        return Inertia::render('EditTransfer')->with([
-            'transfer' => $transfer->append('hours'),
-            'token'    => csrf_token(),
+        return Inertia::render('Transfer', [
+            'transfer' => fractal($transfer, new TransferTransformer(), new ArraySerializer())->toArray(),
         ]);
     }
 
-    public function update(Transfer $transfer, PatchTransferRequest $request)
+    public function verify(Transfer $transfer, VerifyCodeRequest $request)
     {
-        if ($request->wantsChangeCode()) {
-            $transfer->update([
-                'code' => Hash::make($request->input('code')),
-            ]);
-        }
+        $isAuthorized = Hash::check($request->input('code'), $transfer->code);
 
-        if ($request->wantsChangeTime()) {
-            $transfer->update([
-                'expires_at' => $request->newExpirationTime(),
-            ]);
-        }
-
-        return $transfer;
+        return [
+            'is_authorized' => $isAuthorized,
+        ];
     }
 
-    public function getFiles(Transfer $transfer)
+    public function download(Transfer $transfer, File $file, DownloadFileRequest $request)
     {
-        return $transfer->files;
+        $encryptedFile = Storage::get($file->location);
+
+        return response(Crypt::decrypt($encryptedFile), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename=' . $file->name,
+        ]);
     }
 }

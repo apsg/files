@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\FilesController;
+use App\Http\Controllers\AdminTransfersController;
 use App\Http\Controllers\TransfersController;
+use App\Http\Middleware\CheckForExpiredTransferMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -17,39 +19,43 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin'       => Route::has('login'),
-        'canRegister'    => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion'     => PHP_VERSION,
-    ]);
-});
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+])
+    ->as('admin.')
+    ->group(function () {
+        Route::get('/dashboard', function () {
+            return Inertia::render('Dashboard');
+        })->name('dashboard');
 
-    Route::get('/files', [FilesController::class, 'show'])->name('admin.files.index');
+        Route::get('/files', [FilesController::class, 'show'])->name('files.index');
 
-    Route::prefix('transfers')
-        ->as('transfers.')
-        ->group(function () {
-            Route::get('/store', [TransfersController::class, 'store'])->name('store');
-            Route::get('/{transfer}', [TransfersController::class, 'edit'])->name('edit');
-            Route::get('/{transfer}/files', [TransfersController::class, 'getFiles'])->name('files');
-            Route::patch('/{transfer}', [TransfersController::class, 'update'])->name('update');
-            Route::post('/{transfer}/upload', [FilesController::class, 'store'])->name('upload');
-        });
+        Route::prefix('transfers')
+            ->as('transfers.')
+            ->group(function () {
+                Route::get('/store', [AdminTransfersController::class, 'store'])->name('store');
+                Route::get('/{transfer}', [AdminTransfersController::class, 'edit'])->name('edit');
+                Route::get('/{transfer}/files', [AdminTransfersController::class, 'getFiles'])->name('files');
+                Route::patch('/{transfer}', [AdminTransfersController::class, 'update'])->name('update');
+                Route::post('/{transfer}/upload', [FilesController::class, 'store'])->name('upload');
+            });
 
-    Route::prefix('files')
-        ->as('files.')
-        ->group(function () {
-            Route::delete('/{file}', [FilesController::class, 'destroy'])->name('destroy');
-        });
-});
+        Route::prefix('files')
+            ->as('files.')
+            ->group(function () {
+                Route::delete('/{file}', [FilesController::class, 'destroy'])->name('destroy');
+            });
+    });
+
+Route::as('transfers.')
+    ->middleware([
+        CheckForExpiredTransferMiddleware::class,
+    ])
+    ->prefix('/t')
+    ->group(function () {
+        Route::get('/{transfer:hash}', [TransfersController::class, 'show'])->name('show');
+        Route::post('/{transfer:hash}/verify', [TransfersController::class, 'verify'])->name('verify');
+        Route::get('//{transfer:hash}/d/{file}', [TransfersController::class, 'download'])->name('download');
+    });

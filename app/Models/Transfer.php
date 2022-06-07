@@ -52,4 +52,13 @@ class Transfer extends Model
     {
         return $this->expires_at->diffInHours();
     }
+
+    public function isExpired() : bool
+    {
+        if ($this->expires_at === null) {
+            return false;
+        }
+
+        return $this->expires_at->isPast();
+    }
 }
